@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mazi Fleet Dashboard Deployment Guide</title>
+  <style>
+    :root {
+      --bg: #f7f8ff;
+      --ink: #101827;
+      --muted: #64748b;
+      --card: #ffffff;
+      --line: rgba(15, 23, 42, 0.10);
+      --primary: #7c3aed;
+      --cyan: #06b6d4;
+      --green: #22c55e;
+      --orange: #f97316;
+      --pink: #ec4899;
+      --shadow: 0 22px 60px rgba(38, 40, 90, 0.14);
+      --radius: 28px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.16), transparent 32%),
+        radial-gradient(circle at 90% 8%, rgba(6, 182, 212, 0.16), transparent 32%),
+        radial-gradient(circle at 70% 100%, rgba(236, 72, 153, 0.12), transparent 30%),
+        var(--bg);
+      line-height: 1.65;
+    }
+    .wrap { width: min(1060px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 56px; }
+    .hero {
+      padding: 34px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--primary), var(--cyan) 58%, var(--pink));
+      color: white;
+      box-shadow: var(--shadow);
+    }
+    .eyebrow { display: inline-flex; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.26); font-weight: 900; letter-spacing: 0.11em; font-size: 0.75rem; text-transform: uppercase; }
+    h1 { margin: 16px 0 10px; font-size: clamp(2rem, 5vw, 4rem); line-height: 0.98; letter-spacing: -0.06em; }
+    .hero p { margin: 0; max-width: 820px; color: rgba(255,255,255,0.92); }
+    .grid { display: grid; gap: 18px; margin-top: 22px; }
+    .card { background: rgba(255,255,255,0.94); border: 1px solid rgba(255,255,255,0.75); border-radius: 24px; padding: 24px; box-shadow: 0 14px 40px rgba(38, 40, 90, 0.10); }
+    h2 { margin: 0 0 10px; letter-spacing: -0.035em; font-size: 1.55rem; }
+    h3 { margin: 20px 0 8px; letter-spacing: -0.02em; }
+    p { color: var(--muted); }
+    a { color: #4f46e5; font-weight: 800; }
+    code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    code { background: #eef2ff; color: #312e81; border-radius: 8px; padding: 2px 6px; font-weight: 800; }
+    pre { overflow-x: auto; background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 18px; line-height: 1.55; }
+    .steps { counter-reset: step; display: grid; gap: 14px; margin-top: 14px; }
+    .step { display: grid; grid-template-columns: 42px 1fr; gap: 14px; align-items: start; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: #fff; }
+    .step::before { counter-increment: step; content: counter(step); width: 42px; height: 42px; display: grid; place-items: center; border-radius: 15px; color: white; font-weight: 950; background: linear-gradient(135deg, var(--primary), var(--pink)); }
+    .step strong { display: block; color: var(--ink); margin-bottom: 4px; }
+    .callout { padding: 16px 18px; border-radius: 18px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.18); color: #164e63; }
+    .warning { background: rgba(249, 115, 22, 0.10); border-color: rgba(249, 115, 22, 0.22); color: #7c2d12; }
+    .success { background: rgba(34, 197, 94, 0.10); border-color: rgba(34, 197, 94, 0.22); color: #14532d; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 18px; background: white; border: 1px solid var(--line); }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid rgba(15,23,42,0.08); vertical-align: top; }
+    th { background: #f8fafc; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.75rem; }
+    tr:last-child td { border-bottom: 0; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #ede9fe; color: #5b21b6; font-weight: 900; font-size: 0.82rem; margin: 4px 6px 4px 0; }
+    .footer { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 24px; }
+    @media (max-width: 760px) { .hero, .card { padding: 20px; } .step { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Deployment guide</div>
+      <h1>Mazi Fleet Dashboard on GitHub Pages</h1>
+      <p>Use this guide to publish <code>index.html</code>, connect a public Google Sheet CSV feed, and train staff to refresh the dashboard without touching code.</p>
+    </section>
+
+    <section class="card grid">
+      <h2>What you have</h2>
+      <p>The dashboard is a static HTML file named <code>index.html</code>. It uses Chart.js and Papa Parse from public CDNs, stores the Google Sheet URL in browser <code>localStorage</code>, and auto-refreshes the CSV every 60 seconds while the page is open.</p>
+      <div>
+        <span class="pill">Live CSV</span>
+        <span class="pill">60s refresh</span>
+        <span class="pill">No backend</span>
+        <span class="pill">GitHub Pages ready</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>1. Prepare the Google Sheet</h2>
+      <p>Create a Google Sheet with the exact column headers in row 1. The dashboard is forgiving about minor spacing and capitalization, but the safest setup is to use these names exactly:</p>
+      <pre>SL, NoPlate, Model, Make, Year, Colour, Customer, Nationality, Contact, Start Date, End Date, Actual Rent, Security Deposit, Collected, Payment Status, Status, Type, Standard Rent</pre>
+      <table>
+        <thead><tr><th>Field type</th><th>Recommended format</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Dates</td><td><code>DD/MM/YYYY</code> or <code>YYYY-MM-DD</code></td><td>Used for date slicers, revenue month, duration, and active contract logic.</td></tr>
+          <tr><td>Money</td><td><code>3500</code>, <code>AED 3,500</code>, or <code>3,500.00</code></td><td>Actual Rent, Security Deposit, Collected, and Standard Rent are parsed as numbers.</td></tr>
+          <tr><td>Status</td><td><code>Active</code>, <code>Closed</code>, <code>Maintenance</code>, <code>Available</code></td><td>Used in KPI, badges, and donut chart.</td></tr>
+          <tr><td>Payment Status</td><td><code>Paid</code>, <code>Partial</code>, <code>Pending</code>, <code>Unpaid</code></td><td>Used in polar area chart and table badges.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>2. Make the sheet accessible as CSV</h2>
+      <div class="callout warning"><strong>Important:</strong> Publishing or public sharing can expose spreadsheet data to anyone with access to the link. Remove private or sensitive information before publishing.</div>
+      <h3>Recommended method: Publish to web</h3>
+      <div class="steps">
+        <div class="step"><div><strong>Open the sheet on a computer.</strong><p>Use Google Sheets in a desktop browser.</p></div></div>
+        <div class="step"><div><strong>Go to File &gt; Share &gt; Publish to web.</strong><p>Select the tab that contains the fleet data. Publish the full spreadsheet only when every tab is safe to expose.</p></div></div>
+        <div class="step"><div><strong>Choose the CSV or comma-separated format if offered.</strong><p>If Google gives you a published link, copy it. The dashboard can accept published links such as <code>/pub?output=csv</code> or <code>/pubhtml</code>.</p></div></div>
+        <div class="step"><div><strong>Paste that link into the dashboard.</strong><p>Click <strong>Save &amp; Load</strong>. The link is saved in that browser so staff only paste it once.</p></div></div>
+      </div>
+      <h3>Alternative method: Share link</h3>
+      <p>Set the sheet to <strong>Anyone with the link can view</strong>, copy the normal Sheets URL, and paste it into the dashboard. The dashboard will try to convert it into:</p>
+      <pre>https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&amp;gid=TAB_GID</pre>
+      <p>This method is convenient, but the published CSV method is usually easier to troubleshoot because the CSV URL can be tested directly in an incognito browser tab.</p>
+    </section>
+
+    <section class="card">
+      <h2>3. Deploy <code>index.html</code> to GitHub Pages</h2>
+      <div class="steps">
+        <div class="step"><div><strong>Create or open a GitHub repository.</strong><p>For a project site, any repository name is fine. For a user site, the repository name is usually <code>username.github.io</code>.</p></div></div>
+        <div class="step"><div><strong>Upload the dashboard file.</strong><p>Place <code>index.html</code> at the root of the repository, or at the root of the folder you will publish from. Keep the filename exactly <code>index.html</code>.</p></div></div>
+        <div class="step"><div><strong>Open Settings &gt; Pages.</strong><p>Under Build and deployment, choose <strong>Deploy from a branch</strong>.</p></div></div>
+        <div class="step"><div><strong>Select the branch and folder.</strong><p>Choose <code>main</code> and <code>/(root)</code> when <code>index.html</code> is in the repository root. Save the Pages settings.</p></div></div>
+        <div class="step"><div><strong>Open the published site.</strong><p>GitHub will show a Pages URL after deployment. Publishing can take several minutes after changes are pushed.</p></div></div>
+      </div>
+      <div class="callout success"><strong>Done:</strong> Open the GitHub Pages URL, paste the Google Sheet URL, click <strong>Save &amp; Load</strong>, and the dashboard will refresh every 60 seconds while open.</div>
+    </section>
+
+    <section class="card">
+      <h2>4. Staff operating steps</h2>
+      <div class="steps">
+        <div class="step"><div><strong>Open the GitHub Pages dashboard URL.</strong><p>Use Chrome, Edge, Safari, or Firefox.</p></div></div>
+        <div class="step"><div><strong>Paste the Google Sheet URL once.</strong><p>Click <strong>Save &amp; Load</strong>. The URL is saved only in that browser profile.</p></div></div>
+        <div class="step"><div><strong>Update rows in Google Sheets.</strong><p>The page checks for fresh CSV data every 60 seconds. Staff can also click <strong>Refresh Now</strong>.</p></div></div>
+        <div class="step"><div><strong>Use slicers for analysis.</strong><p>Set date range, model, nationality, colour, status, payment, and year, then click <strong>Apply</strong>. Click <strong>Reset</strong> to return to all records.</p></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>5. Troubleshooting</h2>
+      <table>
+        <thead><tr><th>Problem</th><th>Likely cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Dashboard says the link returned HTML</td><td>The sheet is private, the URL is not a CSV endpoint, or Google returned a sign-in page.</td><td>Publish to web, copy the CSV/published link, and test it in an incognito tab. The tab should show plain CSV text, not a web page.</td></tr>
+          <tr><td>No rows loaded</td><td>Header row is missing or column names are very different.</td><td>Use the exact headers listed in section 1.</td></tr>
+          <tr><td>Charts show wrong months</td><td>Date format is inconsistent.</td><td>Use <code>DD/MM/YYYY</code> or <code>YYYY-MM-DD</code> consistently.</td></tr>
+          <tr><td>Wrong tab is loaded</td><td>The copied URL has the wrong <code>gid</code>.</td><td>Open the correct sheet tab, copy the URL again, and save it in the dashboard.</td></tr>
+          <tr><td>Staff need to change the source</td><td>The saved link is stored in localStorage on that browser.</td><td>Click <strong>Clear Saved Link</strong>, paste the new Sheet URL, then click <strong>Save &amp; Load</strong>.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Official references</h2>
+      <p>GitHub Pages documentation explains that a Pages site can be created from a new or existing repository, that GitHub Pages looks for <code>index.html</code>, <code>index.md</code>, or <code>README.md</code> as the entry file, and that Pages can deploy from a branch. Google Docs Editors Help explains how to publish Docs, Sheets, Slides, and Forms to the web and warns that published content may be visible publicly depending on account settings.</p>
+      <ul>
+        <li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site" target="_blank" rel="noopener">GitHub Docs: Creating a GitHub Pages site</a></li>
+        <li><a href="https://docs.github.com/en/pages/quickstart" target="_blank" rel="noopener">GitHub Docs: Quickstart for GitHub Pages</a></li>
+        <li><a href="https://support.google.com/docs/answer/183965" target="_blank" rel="noopener">Google Docs Editors Help: Make Google Docs, Sheets, Slides and Forms public</a></li>
+      </ul>
+    </section>
+
+    <p class="footer">Mazi Fleet Management App - static deployment guide</p>
+  </main>
+</body>
+</html>
