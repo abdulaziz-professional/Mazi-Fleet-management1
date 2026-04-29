@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mazi Fleet Analytics Dashboard</title>
   <meta name="description" content="Live car rental fleet analytics dashboard connected to Google Sheets CSV.">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mazi Fleet">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -85,6 +94,14 @@
       background: #ffffff;
       border: 1px solid var(--line);
       box-shadow: none;
+    }
+
+    button.install-btn {
+      width: 100%;
+      color: #0f172a;
+      background: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.50);
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.16);
     }
 
     input, select {
@@ -256,24 +273,14 @@
 
     .source-controls {
       display: grid;
-      gap: 14px;
-    }
-
-    .sheet-url-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(260px, 1fr));
-      gap: 12px;
-    }
-
-    .source-actions {
-      display: flex;
+      grid-template-columns: minmax(260px, 1fr) auto auto auto;
       gap: 10px;
       align-items: center;
-      flex-wrap: wrap;
     }
 
-    .source-field input {
-      min-height: 48px;
+    .source-controls.multi-source {
+      grid-template-columns: repeat(2, minmax(260px, 1fr)) auto auto auto;
+      align-items: end;
     }
 
     .notice {
@@ -306,7 +313,7 @@
 
     .filters-grid {
       display: grid;
-      grid-template-columns: repeat(7, minmax(130px, 1fr));
+      grid-template-columns: repeat(8, minmax(130px, 1fr));
       gap: 12px;
       align-items: end;
     }
@@ -461,7 +468,7 @@
 
     .table-wrap { overflow-x: auto; border-radius: 18px; border: 1px solid var(--line); background: #ffffff; }
 
-    table { width: 100%; border-collapse: collapse; min-width: 1380px; }
+    table { width: 100%; border-collapse: collapse; min-width: 1440px; }
     th, td { text-align: left; padding: 13px 14px; border-bottom: 1px solid rgba(15, 23, 42, 0.07); vertical-align: middle; }
     th { background: #f8fafc; color: #475569; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; position: sticky; top: 0; z-index: 2; }
     td { font-size: 0.88rem; color: #273244; }
@@ -544,7 +551,7 @@
 
     @media (max-width: 1180px) {
       .hero { grid-template-columns: 1fr; }
-      .sheet-url-grid { grid-template-columns: 1fr; }
+      .source-controls { grid-template-columns: 1fr 1fr; }
       .filters-grid { grid-template-columns: repeat(4, minmax(130px, 1fr)); }
       .kpi-grid { grid-template-columns: repeat(3, 1fr); }
       .chart-grid { grid-template-columns: 1fr 1fr; }
@@ -555,8 +562,7 @@
     @media (max-width: 820px) {
       .app { width: min(100% - 20px, 1500px); padding-top: 10px; }
       .hero, .source-card, .filters-card, .table-card { padding: 18px; }
-      .sheet-url-grid, .filters-grid, .kpi-grid, .chart-grid, .second-row { grid-template-columns: 1fr; }
-      .source-actions { flex-direction: column; align-items: stretch; }
+      .source-controls, .filters-grid, .kpi-grid, .chart-grid, .second-row { grid-template-columns: 1fr; }
       .chart-card.wide { grid-column: auto; }
       .filter-actions { flex-direction: column; align-items: stretch; }
       button { width: 100%; }
@@ -573,13 +579,15 @@
       <div>
         <div class="eyebrow">Mazi Fleet Management</div>
         <h1>Car Rental Fleet Analytics</h1>
-        <p class="description">A live fleet dashboard connected to Dubai and Sharjah Google Sheet CSV feeds. Both sheets are merged into one result for revenue, active contracts, deposits, status distribution, payments, nationalities, models, and contract performance.</p>
+        <p class="description">A live, energetic fleet dashboard connected to a public Google Sheet CSV feed. Monitor revenue, active contracts, deposits, status distribution, payments, nationalities, models, and contract performance in one GitHub Pages file.</p>
       </div>
       <aside class="hero-panel" aria-label="Live data status">
         <div class="live-pill"><span class="live-dot" aria-hidden="true"></span><span id="connectionStatus">Demo mode</span></div>
         <div class="row"><span>Last refresh</span><b id="lastRefresh">Never</b></div>
         <div class="row"><span>Auto refresh</span><b>Every 60 seconds</b></div>
         <div class="row"><span>Next refresh</span><b id="refreshCountdown">--</b></div>
+        <div class="row"><span>App mode</span><b id="pwaStatus">Ready</b></div>
+        <button id="installAppBtn" class="install-btn" type="button">Install App</button>
       </aside>
     </header>
 
@@ -587,27 +595,23 @@
       <div class="section-head">
         <div>
           <h2>Google Sheet connection</h2>
-          <p>Paste both Google Sheet share URLs, published URLs, or direct CSV export URLs once. The Dubai and Sharjah sheets are saved in this browser and merged into one dashboard result.</p>
+          <p>Connect Dubai and Sharjah Google Sheets together. Paste each public share URL, published URL, or direct CSV export URL once; both are saved in this browser with localStorage.</p>
         </div>
       </div>
-      <div class="source-controls">
-        <div class="sheet-url-grid">
-          <div class="field source-field">
-            <label for="dubaiSheetUrl">Dubai number plate sheet</label>
-            <input id="dubaiSheetUrl" type="url" placeholder="Dubai sheet URL: https://docs.google.com/spreadsheets/d/.../edit#gid=0" aria-label="Dubai Google Sheet URL">
-          </div>
-          <div class="field source-field">
-            <label for="sharjahSheetUrl">Sharjah number plate sheet</label>
-            <input id="sharjahSheetUrl" type="url" placeholder="Sharjah sheet URL: https://docs.google.com/spreadsheets/d/.../edit#gid=0" aria-label="Sharjah Google Sheet URL">
-          </div>
+      <div class="source-controls multi-source">
+        <div class="field">
+          <label for="dubaiSheetUrl">Dubai number plate sheet URL</label>
+          <input id="dubaiSheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit#gid=0" aria-label="Dubai Google Sheet URL">
         </div>
-        <div class="source-actions">
-          <button id="saveUrlBtn" class="green">Save Both &amp; Load</button>
-          <button id="refreshBtn" class="secondary">Refresh Now</button>
-          <button id="clearUrlBtn" class="ghost">Clear Saved Links</button>
+        <div class="field">
+          <label for="sharjahSheetUrl">Sharjah number plate sheet URL</label>
+          <input id="sharjahSheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit#gid=0" aria-label="Sharjah Google Sheet URL">
         </div>
+        <button id="saveUrlsBtn" class="green">Save Both &amp; Load</button>
+        <button id="refreshBtn" class="secondary">Refresh Now</button>
+        <button id="clearUrlsBtn" class="ghost">Clear Saved Links</button>
       </div>
-      <div class="notice" id="dataMessage">Paste the public Dubai and Sharjah Google Sheet links. Until then, the dashboard uses sample demo data so the layout remains visible.</div>
+      <div class="notice" id="dataMessage">Paste public Google Sheet links for Dubai and Sharjah. Until then, the dashboard uses sample demo data so the layout remains visible.</div>
       <details>
         <summary>Required Google Sheet headers</summary>
         <code>SL, NoPlate, Model, Make, Year, Colour, Customer, Nationality, Contact, Start Date, End Date, Actual Rent, Security Deposit, Collected, Payment Status, Status, Type, Standard Rent</code>
@@ -786,7 +790,7 @@
       </div>
     </section>
 
-    <p class="footer-note">Static dashboard for GitHub Pages. No backend, no database, no API key. Data stays in your public Google Sheets and this browser.</p>
+    <p class="footer-note">Static dashboard for GitHub Pages. No backend, no database, no API key. Data stays in your public Google Sheet and this browser.</p>
   </main>
 
   <script>
@@ -828,11 +832,13 @@
     document.addEventListener("DOMContentLoaded", () => {
       cacheElements();
       bindEvents();
+      setupPwaInstall();
       els.pageSize.value = String(pageSize);
-      const savedUrls = getSavedSheetUrls();
-      els.dubaiSheetUrl.value = savedUrls.dubai;
-      els.sharjahSheetUrl.value = savedUrls.sharjah;
-      if (savedUrls.dubai || savedUrls.sharjah) {
+      const savedDubaiUrl = getSavedSourceUrl("dubai") || localStorage.getItem(LEGACY_LOCAL_KEY) || "";
+      const savedSharjahUrl = getSavedSourceUrl("sharjah") || "";
+      els.dubaiSheetUrl.value = savedDubaiUrl;
+      els.sharjahSheetUrl.value = savedSharjahUrl;
+      if (savedDubaiUrl || savedSharjahUrl) {
         loadSheetData(false);
       } else {
         loadDemoData();
@@ -841,28 +847,31 @@
     });
 
     function cacheElements() {
-      ["dubaiSheetUrl", "sharjahSheetUrl", "saveUrlBtn", "refreshBtn", "clearUrlBtn", "dataMessage", "connectionStatus", "lastRefresh", "refreshCountdown", "filterForm", "dateFrom", "dateTo", "modelFilter", "nationalityFilter", "colourFilter", "statusFilter", "paymentFilter", "yearFilter", "sourceFilter", "resetFiltersBtn", "kpiVehicles", "kpiRevenue", "kpiAvgRent", "kpiDeposit", "kpiActive", "durationInsights", "rentComparison", "yearTimeline", "tableSummary", "tableBody", "pageInfo", "prevPage", "nextPage", "pageSize"].forEach(id => els[id] = document.getElementById(id));
+      ["dubaiSheetUrl", "sharjahSheetUrl", "saveUrlsBtn", "refreshBtn", "clearUrlsBtn", "dataMessage", "connectionStatus", "lastRefresh", "refreshCountdown", "pwaStatus", "installAppBtn", "filterForm", "dateFrom", "dateTo", "modelFilter", "nationalityFilter", "colourFilter", "statusFilter", "paymentFilter", "yearFilter", "sourceFilter", "resetFiltersBtn", "kpiVehicles", "kpiRevenue", "kpiAvgRent", "kpiDeposit", "kpiActive", "durationInsights", "rentComparison", "yearTimeline", "tableSummary", "tableBody", "pageInfo", "prevPage", "nextPage", "pageSize"].forEach(id => els[id] = document.getElementById(id));
     }
 
     function bindEvents() {
-      els.saveUrlBtn.addEventListener("click", () => {
-        const urls = getInputSheetUrls();
-        if (!urls.dubai && !urls.sharjah) {
-          setMessage("Paste at least one Google Sheet URL. Add both Dubai and Sharjah links to combine both fleets.", "warn");
+      els.saveUrlsBtn.addEventListener("click", () => {
+        const dubaiUrl = els.dubaiSheetUrl.value.trim();
+        const sharjahUrl = els.sharjahSheetUrl.value.trim();
+        if (!dubaiUrl && !sharjahUrl) {
+          setMessage("Paste at least one Google Sheet URL first. Demo data is still shown.", "warn");
           return;
         }
-        saveSheetUrls(urls);
+        saveSourceUrl("dubai", dubaiUrl);
+        saveSourceUrl("sharjah", sharjahUrl);
+        if (dubaiUrl) localStorage.setItem(LEGACY_LOCAL_KEY, dubaiUrl);
         loadSheetData(false);
       });
 
       els.refreshBtn.addEventListener("click", () => loadSheetData(false));
 
-      els.clearUrlBtn.addEventListener("click", () => {
-        clearSheetUrls();
+      els.clearUrlsBtn.addEventListener("click", () => {
+        clearSourceUrls();
         els.dubaiSheetUrl.value = "";
         els.sharjahSheetUrl.value = "";
         loadDemoData();
-        setMessage("Saved Dubai and Sharjah links cleared. Demo data is now displayed.", "info");
+        setMessage("Saved links cleared. Demo data is now displayed.", "info");
       });
 
       els.filterForm.addEventListener("submit", event => {
@@ -898,54 +907,50 @@
       });
     }
 
-    function getSavedSheetUrls() {
-      const legacy = localStorage.getItem(LEGACY_LOCAL_KEY) || "";
-      return {
-        dubai: (localStorage.getItem(DUBAI_LOCAL_KEY) || legacy || "").trim(),
-        sharjah: (localStorage.getItem(SHARJAH_LOCAL_KEY) || "").trim()
-      };
-    }
 
-    function getInputSheetUrls() {
-      const saved = getSavedSheetUrls();
-      return {
-        dubai: ((els.dubaiSheetUrl && els.dubaiSheetUrl.value.trim()) || saved.dubai || "").trim(),
-        sharjah: ((els.sharjahSheetUrl && els.sharjahSheetUrl.value.trim()) || saved.sharjah || "").trim()
-      };
-    }
 
-    function saveSheetUrls(urls) {
-      if (urls.dubai) localStorage.setItem(DUBAI_LOCAL_KEY, urls.dubai);
-      else localStorage.removeItem(DUBAI_LOCAL_KEY);
-      if (urls.sharjah) localStorage.setItem(SHARJAH_LOCAL_KEY, urls.sharjah);
-      else localStorage.removeItem(SHARJAH_LOCAL_KEY);
-      localStorage.removeItem(LEGACY_LOCAL_KEY);
-    }
-
-    function clearSheetUrls() {
-      localStorage.removeItem(DUBAI_LOCAL_KEY);
-      localStorage.removeItem(SHARJAH_LOCAL_KEY);
-      localStorage.removeItem(LEGACY_LOCAL_KEY);
-    }
-
-    function getActiveSourceDefinitions(urls) {
+    function getSourceDefinitions() {
       return [
-        { key: "dubai", label: "Dubai", display: "Dubai Plate Sheet", url: urls.dubai },
-        { key: "sharjah", label: "Sharjah", display: "Sharjah Plate Sheet", url: urls.sharjah }
-      ].filter(source => source.url);
+        { key: "dubai", label: "Dubai Plate Sheet", input: els.dubaiSheetUrl, storageKey: DUBAI_LOCAL_KEY, aliases: [DUBAI_LOCAL_KEY, "maziFleetDubaiUrl", "maziFleetSheetUrlDubai"] },
+        { key: "sharjah", label: "Sharjah Plate Sheet", input: els.sharjahSheetUrl, storageKey: SHARJAH_LOCAL_KEY, aliases: [SHARJAH_LOCAL_KEY, "maziFleetSharjahUrl", "maziFleetSheetUrlSharjah"] }
+      ];
     }
 
-    function hasSavedSheetUrls() {
-      const urls = getSavedSheetUrls();
-      return Boolean(urls.dubai || urls.sharjah);
+    function getSavedSourceUrl(key) {
+      const def = getSourceDefinitions().find(item => item.key === key);
+      if (!def) return "";
+      for (const alias of def.aliases) {
+        const value = localStorage.getItem(alias);
+        if (value) return value;
+      }
+      return "";
+    }
+
+    function saveSourceUrl(key, url) {
+      const def = getSourceDefinitions().find(item => item.key === key);
+      if (!def) return;
+      if (url) localStorage.setItem(def.storageKey, url);
+      else localStorage.removeItem(def.storageKey);
+    }
+
+    function clearSourceUrls() {
+      [LEGACY_LOCAL_KEY, DUBAI_LOCAL_KEY, SHARJAH_LOCAL_KEY, "maziFleetDubaiUrl", "maziFleetSharjahUrl", "maziFleetSheetUrlDubai", "maziFleetSheetUrlSharjah"].forEach(key => localStorage.removeItem(key));
+    }
+
+    function getConfiguredSources() {
+      return getSourceDefinitions()
+        .map(def => ({ ...def, url: (def.input.value.trim() || getSavedSourceUrl(def.key) || "").trim() }))
+        .filter(def => def.url);
+    }
+
+    function hasConfiguredSources() {
+      return !!(els.dubaiSheetUrl?.value.trim() || els.sharjahSheetUrl?.value.trim() || getSavedSourceUrl("dubai") || getSavedSourceUrl("sharjah") || localStorage.getItem(LEGACY_LOCAL_KEY));
     }
 
     function loadDemoData() {
       loadedFromDemo = true;
       const parsed = Papa.parse(demoCsv, { header: true, skipEmptyLines: "greedy" });
-      const demoDubai = normalizeRows(parsed.data.slice(0, 6), "Demo - Dubai", "demo-dubai");
-      const demoSharjah = normalizeRows(parsed.data.slice(6), "Demo - Sharjah", "demo-sharjah");
-      rawRows = [...demoDubai, ...demoSharjah];
+      rawRows = normalizeRows(parsed.data, "Demo Data");
       populateFilters(rawRows);
       filteredRows = [...rawRows];
       currentPage = 1;
@@ -954,12 +959,11 @@
       setStatus("Demo mode");
       els.refreshCountdown.textContent = "--";
       els.lastRefresh.textContent = "Demo data";
-      setMessage("Demo data is displayed. Paste the public Dubai and Sharjah Google Sheet links and click Save Both & Load to combine both sheets.", "info");
+      setMessage("Demo data is displayed. Paste public Dubai and Sharjah Google Sheet links and click Save Both & Load to connect live data.", "info");
     }
 
     async function loadSheetData(isAuto) {
-      const urls = getInputSheetUrls();
-      const sources = getActiveSourceDefinitions(urls);
+      const sources = getConfiguredSources();
       if (!sources.length) {
         loadDemoData();
         return;
@@ -973,33 +977,46 @@
       document.body.classList.add("busy");
       els.dataMessage.classList.add("loading-shimmer");
       try {
-        const results = await Promise.allSettled(sources.map(loadSingleSource));
-        const loaded = results.filter(result => result.status === "fulfilled").map(result => result.value);
-        const failed = results.map((result, index) => ({ result, source: sources[index] })).filter(item => item.result.status === "rejected").map(item => `${item.source.display}: ${item.result.reason && item.result.reason.message ? item.result.reason.message : item.result.reason}`);
-
-        if (!loaded.length) {
-          throw new Error(`No sheets could be loaded. ${failed.join(" | ")}`);
+        const loaded = [];
+        const failed = [];
+        for (const source of sources) {
+          try {
+            const result = await fetchCsv(source.url);
+            const parsed = Papa.parse(result.text, { header: true, skipEmptyLines: "greedy" });
+            if (parsed.errors && parsed.errors.length) console.warn(`CSV parse warnings for ${source.label}`, parsed.errors);
+            const rows = normalizeRows(parsed.data, source.label);
+            if (!rows.length) throw new Error("The CSV loaded, but no usable rows were found. Check that row 1 contains the required headers.");
+            loaded.push({ source, rows, endpoint: result.endpoint });
+            saveSourceUrl(source.key, source.url);
+          } catch (err) {
+            failed.push({ source, error: err });
+          }
         }
 
-        rawRows = loaded.flatMap(item => item.rows);
-        if (!rawRows.length) {
-          throw new Error("The CSV files loaded, but no usable rows were found. Check that row 1 contains the required headers in both sheets.");
+        const rows = loaded.flatMap(item => item.rows);
+        if (!rows.length) {
+          const details = failed.map(item => `${item.source.label}: ${item.error?.message || item.error}`).join(" | ");
+          throw new Error(details || "Unable to load any Google Sheet data.");
         }
 
-        saveSheetUrls(urls);
+        rawRows = rows;
         populateFilters(rawRows);
         applyFilters(false);
         setStatus(failed.length ? "Partially connected" : "Live connected");
         els.lastRefresh.textContent = formatDateTime(new Date());
         nextRefreshAt = Date.now() + REFRESH_MS;
 
-        const counts = loaded.map(item => `${item.source.label}: ${numberFormatter.format(item.rows.length)} rows`).join(" | ");
-        const failedText = failed.length ? ` Some sheets had issues: ${failed.join(" | ")}` : "";
-        setMessage(`Combined live data loaded: ${numberFormatter.format(rawRows.length)} rows from ${numberFormatter.format(loaded.length)} sheet(s). ${counts}.${failedText}`, failed.length ? "warn" : "success");
+        const loadedSummary = loaded.map(item => `${item.source.label} (${numberFormatter.format(item.rows.length)} rows)`).join(" + ");
+        if (failed.length) {
+          const failedSummary = failed.map(item => `${item.source.label}: ${item.error?.message || item.error}`).join(" | ");
+          setMessage(`Loaded ${numberFormatter.format(rawRows.length)} combined rows from ${loadedSummary}. Warning: ${failedSummary}`, "warn");
+        } else {
+          setMessage(`Live combined data loaded: ${numberFormatter.format(rawRows.length)} rows from ${loadedSummary}.`, "success");
+        }
       } catch (err) {
         console.error(err);
         setStatus("Connection issue");
-        setMessage(`${err.message || err}. Tip: open each CSV URL in an incognito tab. If a link shows a sign-in page or HTML, publish/share that sheet publicly.`, "error");
+        setMessage(`${err.message || err}. Tip: open each CSV URL in an incognito tab. If it shows a sign-in page or HTML, publish/share that sheet publicly.`, "error");
         if (!previousRows.length) {
           loadDemoData();
         } else {
@@ -1012,19 +1029,6 @@
         document.body.classList.remove("busy");
         els.dataMessage.classList.remove("loading-shimmer");
       }
-    }
-
-    async function loadSingleSource(source) {
-      const result = await fetchCsv(source.url);
-      const parsed = Papa.parse(result.text, { header: true, skipEmptyLines: "greedy" });
-      if (parsed.errors && parsed.errors.length) {
-        console.warn(`CSV parse warnings for ${source.display}`, parsed.errors);
-      }
-      const rows = normalizeRows(parsed.data, source.display, source.key);
-      if (!rows.length) {
-        throw new Error("CSV loaded, but no usable rows were found");
-      }
-      return { source, rows, endpoint: result.endpoint };
     }
 
     async function fetchCsv(inputUrl) {
@@ -1079,7 +1083,7 @@
       return /^\s*<!doctype html|^\s*<html|ServiceLogin|accounts\.google/i.test(text || "");
     }
 
-    function normalizeRows(rows, sourceName = "Google Sheet", sourceKey = "sheet") {
+    function normalizeRows(rows, sourceLabel = "Google Sheet") {
       return rows.map((row, index) => {
         const rawText = Object.values(row || {}).join("").trim();
         if (!rawText) return null;
@@ -1111,9 +1115,8 @@
           status,
           type: cleanText(pick(row, ["Type", "Rental Type", "Contract Type"])),
           standardRent,
-          sourceName,
-          sourceKey,
           durationDays: durationDays(startDate, endDate, status),
+          source: sourceLabel,
           _sourceIndex: index
         };
       }).filter(Boolean);
@@ -1193,7 +1196,7 @@
       setSelectOptions(els.statusFilter, rows.map(r => r.status), "All statuses");
       setSelectOptions(els.paymentFilter, rows.map(r => r.paymentStatus), "All payments");
       setSelectOptions(els.yearFilter, rows.map(r => r.year), "All years");
-      setSelectOptions(els.sourceFilter, rows.map(r => r.sourceName), "All sources");
+      setSelectOptions(els.sourceFilter, rows.map(r => r.source), "All sources");
     }
 
     function setSelectOptions(select, values, label) {
@@ -1229,7 +1232,7 @@
         if (filters.status && row.status !== filters.status) return false;
         if (filters.payment && row.paymentStatus !== filters.payment) return false;
         if (filters.year && row.year !== filters.year) return false;
-        if (filters.source && row.sourceName !== filters.source) return false;
+        if (filters.source && row.source !== filters.source) return false;
         return true;
       });
       if (!keepPage) currentPage = 1;
@@ -1244,7 +1247,7 @@
     }
 
     function renderKpis() {
-      const plates = new Set(filteredRows.map(vehicleIdentity).filter(Boolean));
+      const plates = new Set(filteredRows.map(r => r.noPlate).filter(Boolean));
       const totalVehicles = plates.size || filteredRows.length;
       const totalRevenue = sum(filteredRows, r => r.actualRent);
       const avgRent = filteredRows.length ? totalRevenue / filteredRows.length : 0;
@@ -1301,7 +1304,7 @@
     }
 
     function renderStatusChart() {
-      const grouped = groupDistinctOrCount(filteredRows, r => r.status || "Unknown", vehicleIdentity);
+      const grouped = groupDistinctOrCount(filteredRows, r => r.status || "Unknown", r => r.noPlate);
       const top = topEntries(grouped, 10);
       chart("statusChart", {
         type: "doughnut",
@@ -1331,7 +1334,7 @@
     }
 
     function renderModelChart() {
-      const grouped = groupDistinctOrCount(filteredRows, r => r.model || "Unknown", vehicleIdentity);
+      const grouped = groupDistinctOrCount(filteredRows, r => r.model || "Unknown", r => r.noPlate);
       const top = topEntries(grouped, 8);
       chart("modelChart", {
         type: "bar",
@@ -1453,7 +1456,8 @@
       currentPage = Math.min(currentPage, totalPages);
       const start = (currentPage - 1) * pageSize;
       const rows = filteredRows.slice(start, start + pageSize);
-      els.tableSummary.textContent = `${numberFormatter.format(total)} filtered rows from ${numberFormatter.format(rawRows.length)} loaded rows${loadedFromDemo ? " (demo)" : ""}`;
+      const sourceCount = new Set(rawRows.map(row => row.source).filter(Boolean)).size;
+      els.tableSummary.textContent = `${numberFormatter.format(total)} filtered rows from ${numberFormatter.format(rawRows.length)} loaded rows across ${numberFormatter.format(sourceCount || 1)} source${(sourceCount || 1) === 1 ? "" : "s"}${loadedFromDemo ? " (demo)" : ""}`;
       if (!rows.length) {
         els.tableBody.innerHTML = `<tr><td colspan="17"><div class="empty-state">No rows match the current filters.</div></td></tr>`;
       } else {
@@ -1461,7 +1465,7 @@
           <tr>
             <td>${escapeHtml(row.sl)}</td>
             <td><span class="plate">${escapeHtml(row.noPlate || "--")}</span></td>
-            <td>${badge(row.sourceName, "source")}</td>
+            <td>${sourceBadge(row.source)}</td>
             <td><strong>${escapeHtml(row.make || "--")}</strong><br><span style="color:#64748b">${escapeHtml(row.model || "--")}</span></td>
             <td>${escapeHtml(row.year || "--")}</td>
             <td>${escapeHtml(row.colour || "--")}</td>
@@ -1486,6 +1490,16 @@
       els.nextPage.disabled = currentPage >= totalPages;
     }
 
+    function sourceBadge(value) {
+      const text = cleanText(value) || "Unknown";
+      const lower = text.toLowerCase();
+      let cls = "neutral";
+      if (lower.includes("dubai")) cls = "info";
+      if (lower.includes("sharjah")) cls = "purple";
+      if (lower.includes("demo")) cls = "warn";
+      return `<span class="badge ${cls}">${escapeHtml(text)}</span>`;
+    }
+
     function badge(value, type) {
       const text = cleanText(value) || "Unknown";
       const lower = text.toLowerCase();
@@ -1508,6 +1522,44 @@
       return /active|rented|on rent|ongoing|open|running/i.test(String(status || ""));
     }
 
+
+    let deferredInstallPrompt = null;
+
+    function setupPwaInstall() {
+      const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      if (els.pwaStatus) els.pwaStatus.textContent = standalone ? "Installed" : "Installable";
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(err => console.warn("Service worker registration failed", err));
+        });
+      } else if (els.pwaStatus) {
+        els.pwaStatus.textContent = "Browser mode";
+      }
+
+      window.addEventListener("beforeinstallprompt", event => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        if (els.pwaStatus) els.pwaStatus.textContent = "Ready to install";
+      });
+
+      window.addEventListener("appinstalled", () => {
+        deferredInstallPrompt = null;
+        if (els.pwaStatus) els.pwaStatus.textContent = "Installed";
+        setMessage("Mazi Fleet Dashboard installed successfully on this device.", "success");
+      });
+
+      els.installAppBtn?.addEventListener("click", async () => {
+        if (deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          await deferredInstallPrompt.userChoice.catch(() => null);
+          deferredInstallPrompt = null;
+          return;
+        }
+        setMessage("Android: open Chrome menu and tap Install app or Add to Home screen. iPhone/iPad: open Safari, tap Share, then Add to Home Screen and turn on Open as Web App.", "info");
+      });
+    }
+
     function setStatus(text) { els.connectionStatus.textContent = text; }
 
     function setMessage(message, kind) {
@@ -1524,7 +1576,7 @@
       }
       const remaining = Math.max(0, Math.ceil((nextRefreshAt - Date.now()) / 1000));
       els.refreshCountdown.textContent = `${remaining}s`;
-      if (remaining <= 0 && !isLoading && hasSavedSheetUrls()) {
+      if (remaining <= 0 && !isLoading && hasConfiguredSources()) {
         loadSheetData(true);
       }
     }
@@ -1547,12 +1599,6 @@
         map.set(key, (map.get(key) || 0) + (Number(valueFn(row)) || 0));
       });
       return map;
-    }
-
-    function vehicleIdentity(row) {
-      const plate = cleanText(row && row.noPlate);
-      if (!plate) return "";
-      return `${cleanText(row.sourceKey) || "sheet"}|${plate}`;
     }
 
     function groupDistinctOrCount(rows, keyFn, distinctFn) {

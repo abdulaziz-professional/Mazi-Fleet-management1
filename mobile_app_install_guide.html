@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mazi Fleet Dashboard Mobile App Setup Guide</title>
+  <style>
+    :root { --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --blue:#2563eb; --cyan:#06b6d4; --green:#16a34a; --card:#ffffff; --bg:#f8fafc; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--ink); background:linear-gradient(135deg,#f8fafc,#eef6ff); line-height:1.65; }
+    .wrap { width:min(980px, calc(100% - 28px)); margin:0 auto; padding:28px 0 46px; }
+    .hero { padding:32px; border-radius:28px; color:white; background:linear-gradient(135deg, var(--blue), var(--cyan)); box-shadow:0 22px 60px rgba(37,99,235,.22); }
+    h1 { margin:0; font-size:clamp(2rem, 5vw, 3.8rem); line-height:.95; letter-spacing:-.06em; }
+    h2 { margin:0 0 12px; letter-spacing:-.03em; }
+    p { margin:8px 0 0; }
+    .card { margin-top:18px; padding:24px; border:1px solid var(--line); border-radius:24px; background:rgba(255,255,255,.92); box-shadow:0 16px 40px rgba(15,23,42,.08); }
+    .steps { counter-reset:step; display:grid; gap:12px; padding:0; margin:0; list-style:none; }
+    .steps li { counter-increment:step; display:grid; grid-template-columns:42px 1fr; gap:12px; align-items:start; padding:14px; border:1px solid var(--line); border-radius:16px; background:#fff; }
+    .steps li::before { content:counter(step); display:grid; place-items:center; width:34px; height:34px; border-radius:50%; color:white; font-weight:900; background:linear-gradient(135deg,var(--blue),var(--cyan)); }
+    code { background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:2px 6px; font-weight:800; color:#1e3a8a; }
+    .files { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin-top:12px; }
+    .file { padding:14px; border-radius:16px; background:#f8fafc; border:1px solid var(--line); font-weight:800; }
+    .note { padding:14px 16px; border-radius:16px; background:#ecfdf5; border:1px solid #bbf7d0; color:#14532d; font-weight:700; }
+    .warn { padding:14px 16px; border-radius:16px; background:#fff7ed; border:1px solid #fed7aa; color:#7c2d12; font-weight:700; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Mobile App Setup Guide</h1>
+      <p>Install the Mazi Fleet Dashboard like an Android/iOS app using Progressive Web App files hosted on GitHub Pages.</p>
+    </section>
+
+    <section class="card">
+      <h2>Files to upload to GitHub</h2>
+      <p>Upload all of these to the root of the same GitHub repository where your dashboard is hosted.</p>
+      <div class="files">
+        <div class="file">index.html</div>
+        <div class="file">manifest.webmanifest</div>
+        <div class="file">sw.js</div>
+        <div class="file">icons/icon-192.png</div>
+        <div class="file">icons/icon-512.png</div>
+        <div class="file">icons/apple-touch-icon.png</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Update GitHub Pages</h2>
+      <ol class="steps">
+        <li>Open your GitHub dashboard repository.</li>
+        <li>Click <code>Add file</code>, then <code>Upload files</code>.</li>
+        <li>Drag and drop the complete package files. Keep the <code>icons</code> folder as a folder.</li>
+        <li>If GitHub asks to replace old <code>index.html</code>, allow the replacement.</li>
+        <li>Scroll down and click <code>Commit changes</code>.</li>
+        <li>Open your GitHub Pages dashboard URL after the commit finishes.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Install on Android</h2>
+      <ol class="steps">
+        <li>Open the GitHub Pages dashboard link in Chrome on the Android phone.</li>
+        <li>Wait until the page finishes loading.</li>
+        <li>Tap the dashboard's <code>Install App</code> button. If the install prompt does not appear, open Chrome menu.</li>
+        <li>Tap <code>Install app</code> or <code>Add to Home screen</code>.</li>
+        <li>Confirm the name <code>Mazi Fleet</code> and tap <code>Install</code>.</li>
+        <li>Open the app from the phone home screen or app drawer.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Install on iPhone or iPad</h2>
+      <ol class="steps">
+        <li>Open the GitHub Pages dashboard link in Safari.</li>
+        <li>Tap the <code>Share</code> button.</li>
+        <li>Scroll and tap <code>Add to Home Screen</code>.</li>
+        <li>Turn on <code>Open as Web App</code> if the option appears.</li>
+        <li>Tap <code>Add</code>.</li>
+        <li>Open <code>Mazi Fleet</code> from the iPhone or iPad home screen.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Connect both Google Sheets</h2>
+      <ol class="steps">
+        <li>Open the installed app or normal browser dashboard.</li>
+        <li>Paste the Dubai Google Sheet URL in <code>Dubai number plate sheet URL</code>.</li>
+        <li>Paste the Sharjah Google Sheet URL in <code>Sharjah number plate sheet URL</code>.</li>
+        <li>Click <code>Save Both & Load</code>.</li>
+        <li>Check the table <code>Source</code> column to confirm Dubai and Sharjah rows are combined.</li>
+      </ol>
+      <p class="note">The dashboard saves the sheet links separately in the device browser storage, so staff paste the URLs once per device/browser.</p>
+    </section>
+
+    <section class="card">
+      <h2>Troubleshooting</h2>
+      <p class="warn">If the app does not install, check that your dashboard is opened from the live GitHub Pages HTTPS URL, not from a local file on your computer.</p>
+      <p>If the dashboard opens but data does not load, make sure both Google Sheets are shared as public viewer links or published to the web as CSV-compatible sheets.</p>
+    </section>
+  </main>
+</body>
+</html>
